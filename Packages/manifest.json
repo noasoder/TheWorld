@@ -1,5 +1,31 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "NPM Registry",
+      "url": "https://registry.npmjs.org",
+      "scopes": [
+        "com.unity-atoms.unity-atoms-core",
+        "com.unity-atoms.unity-atoms-base-atoms",
+        "com.unity-atoms.unity-atoms-fsm",
+        "com.unity-atoms.unity-atoms-mobile",
+        "com.unity-atoms.unity-atoms-mono-hooks",
+        "com.unity-atoms.unity-atoms-tags",
+        "com.unity-atoms.unity-atoms-scene-mgmt",
+        "com.unity-atoms.unity-atoms-ui",
+        "com.unity-atoms.unity-atoms-input-system"
+      ]
+    }
+  ],
   "dependencies": {
+    "com.unity-atoms.unity-atoms-base-atoms": "4.4.3",
+    "com.unity-atoms.unity-atoms-core": "4.4.3",
+    "com.unity-atoms.unity-atoms-fsm": "4.4.3",
+    "com.unity-atoms.unity-atoms-input-system": "4.4.3",
+    "com.unity-atoms.unity-atoms-mobile": "4.4.3",
+    "com.unity-atoms.unity-atoms-mono-hooks": "4.4.3",
+    "com.unity-atoms.unity-atoms-scene-mgmt": "4.4.3",
+    "com.unity-atoms.unity-atoms-tags": "4.4.3",
+    "com.unity-atoms.unity-atoms-ui": "4.4.3",
     "com.unity.cinemachine": "2.6.11",
     "com.unity.collab-proxy": "1.15.7",
     "com.unity.ide.rider": "2.0.7",
@@ -10,6 +36,7 @@
     "com.unity.test-framework": "1.1.29",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.4.8",
+    "com.unity.toolchain.win-x86_64-linux-x86_64": "1.0.0",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
