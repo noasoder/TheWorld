@@ -6,40 +6,24 @@ RWStructuredBuffer<float4> writePoints;
 Texture2D<float> DepthMap;
 SamplerState samplerDepthMap;
 
-float3 ToSpherical(float3 cartesian)
+float2 SphereToUV(float3 input)
 {
-    float p = sqrt(pow(cartesian.x, 2) + pow(cartesian.y, 2) + pow(-cartesian.z, 2));
-    float theta = atan(cartesian.y / cartesian.x);
-    float phi = acos(-cartesian.z / p);
-    return float3(1, theta, phi);
-}
+    input = normalize(input);
 
-float3 ToCylinder(float3 spherical)
-{
-    float r = spherical.x * sin(spherical.z);
-    float theta = spherical.y;
-    float z = spherical.x * cos(spherical.z);
-    return float3(r, theta, z);
-}
+    float lat = asin(input.y);
+    float long = atan2(input.x, -input.z);
+    
+    const float PI = 3.141594;
+    float u = (long / PI + 1) * 0.5;
+    float v = lat / PI + 0.5;
 
-float3 ToCylindrical(float3 cartesian)
-{
-    float r = sqrt(pow(cartesian.x, 2) + pow(cartesian.y, 2));
-    float theta = atan(cartesian.y / cartesian.x);
-    float z = cartesian.z;
-    return float3(0.5, theta, z);
-}
-
-float2 SphereToPlane(float3 input)
-{
-    //return float2((input.x * tweak3 + tweak5) / (tweak1 - input.z), (input.y * tweak2 + tweak4) / (tweak1 - input.z));
-    return float2(input.x * (input.y + 2) * cos(0.5), input.x * (input.z + 1));
+    return float2(u, v);
 }
 
 [numthreads(16,1,1)]
 void PlaneToSphere(uint3 id : SV_DispatchThreadID)
 {
-    float2 plane = SphereToPlane(ToCylindrical(readPoints[id.x].xzy));
-    float depth = DepthMap.SampleLevel(samplerDepthMap, float2(plane.x * 0.5, plane.y), 0);
+    float2 plane = SphereToUV((readPoints[id.x].xyz));
+    float depth = DepthMap.SampleLevel(samplerDepthMap, float2(plane.x, plane.y), 0);
     writePoints[id.x] = float4(readPoints[id.x].xyz, depth);
 }

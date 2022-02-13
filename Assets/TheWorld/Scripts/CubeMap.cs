@@ -10,9 +10,5 @@ public class CubeMap : MonoBehaviour
     void Start()
     {
 
-        for (int i = 0; i < subdivisions; i++)
-        {
-
-        }
     }
 }
