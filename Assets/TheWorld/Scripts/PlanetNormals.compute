@@ -1,0 +1,41 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel PlanetNormals
+
+RWTexture2D<float4> heightMap;
+int mapWidth;
+int mapHeight;
+float PI;
+float seaLevel;
+float heightMultiplier;
+float worldRadius;
+
+float3 CalcWorldPoint(int2 texCoord)
+{
+    texCoord.x = (texCoord.x + mapWidth) % mapWidth;
+    texCoord.y = (texCoord.y + mapHeight) % mapHeight;
+
+    float2 uv = texCoord / float2(mapWidth - 1, mapHeight - 1);
+    float2 longLat = (uv - 0.5) * PI * float2(2, 1);
+    float3 spherePoint = float3(longLat.y, longLat.x, 0);
+    //float3 spherePoint = coordinateToPoint(longLat.y, longLat.x);
+
+    float height01 = heightMap[texCoord].a;
+    float worldHeight = worldRadius + (height01 - seaLevel) * heightMultiplier;
+    return spherePoint * worldHeight;
+}
+
+[numthreads(16,16,1)]
+void PlanetNormals (uint3 id : SV_DispatchThreadID)
+{
+    float3 posNorth = CalcWorldPoint(id.xy + int2(0, 1));
+    float3 posSouth = CalcWorldPoint(id.xy + int2(0, -1));
+    float3 posEast = CalcWorldPoint(id.xy + int2(1, 0));
+    float3 posWest = CalcWorldPoint(id.xy + int2(-1, 0));
+
+    float3 dirNorth = normalize(posNorth - posSouth);
+    float3 dirEast = normalize(posEast - posWest);
+    float3 normal = normalize(cross(dirNorth, dirEast));
+
+    float height01 = heightMap[id.xy].a;
+    heightMap[id.xy] = float4(normal, height01);
+}

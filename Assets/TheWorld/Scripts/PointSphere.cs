@@ -2,31 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityAtoms.BaseAtoms;
-using UnityAtoms;
 using UniRx;
 
 public class PointSphere : MonoBehaviour
 {
     [SerializeField]
     private IntVariable samples;
-    [SerializeField]
-    private FloatVariable radius;
-    [SerializeField]
-    private FloatReference gizmoSize;
 
-    private List<Vector3> points = new List<Vector3>();
+    public ReactiveProperty<List<Vector3>> points;
 
     private void Awake()
     {
-        FibonacciSphere(samples.Value, radius.Value);
+        points = new ReactiveProperty<List<Vector3>>();
 
-        samples.ObserveChange().Subscribe(samples => FibonacciSphere(samples, radius.Value)).AddTo(this);
-        radius.ObserveChange().Subscribe(radius => FibonacciSphere(samples.Value, radius)).AddTo(this);
+        FibonacciSphere(samples.Value);
+
+        samples.ObserveChange().Subscribe(samples => FibonacciSphere(samples)).AddTo(this);
+
+        //StartCoroutine(slowUpdate());
     }
 
-    private void FibonacciSphere(int samples = 1000, float size = 10)
+    private void FibonacciSphere(int samples = 1000)
     {
-        points.Clear();
+        var p = new List<Vector3>();
         var phi = Mathf.PI * (3f - Mathf.Sqrt(5f));
 
         for (int i = 0; i < samples; i++)
@@ -39,15 +37,27 @@ public class PointSphere : MonoBehaviour
             var x = Mathf.Cos(theta) * radius;
             var z = Mathf.Sin(theta) * radius;
 
-            points.Add(new Vector3(x, y, z) * size);
+            p.Add(new Vector3(x, y, z));
         }
+        points.SetValueAndForceNotify(p);
     }
 
-    private void OnDrawGizmos()
+    private IEnumerator slowUpdate()
     {
-        foreach (var point in points)
+        while(true)
         {
-            Gizmos.DrawCube(point, Vector3.one * gizmoSize.Value);
+            yield return new WaitForSeconds(0.1f);
+
+            points.SetValueAndForceNotify(points.Value);
         }
+        //yield return null;
     }
+
+    //private void OnDrawGizmos()
+    //{
+    //    foreach (var point in points)
+    //    {
+    //        Gizmos.DrawCube(point, Vector3.one);
+    //    }
+    //}
 }
