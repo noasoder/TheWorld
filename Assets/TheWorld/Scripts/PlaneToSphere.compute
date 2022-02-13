@@ -3,7 +3,7 @@
 
 StructuredBuffer<float3> readPoints;
 RWStructuredBuffer<float4> writePoints;
-Texture2D<float> DepthMap;
+Texture2D<float4> DepthMap;
 SamplerState samplerDepthMap;
 
 float2 SphereToUV(float3 input)
@@ -23,7 +23,7 @@ float2 SphereToUV(float3 input)
 [numthreads(16,1,1)]
 void PlaneToSphere(uint3 id : SV_DispatchThreadID)
 {
-    float2 plane = SphereToUV((readPoints[id.x].xyz));
-    float depth = DepthMap.SampleLevel(samplerDepthMap, float2(plane.x, plane.y), 0);
-    writePoints[id.x] = float4(readPoints[id.x].xyz, depth);
+    float2 uv = SphereToUV((readPoints[id.x].xyz));
+    float4 depth = DepthMap.SampleLevel(samplerDepthMap, float2(uv.x, uv.y), 0);
+    writePoints[id.x] = float4(depth);
 }

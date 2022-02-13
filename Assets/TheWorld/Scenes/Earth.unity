@@ -593,13 +593,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1759977400}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 90.43, z: 0}
+  m_LocalRotation: {x: 0.24708354, y: 0, z: 0, w: 0.96899426}
+  m_LocalPosition: {x: 0, y: 100, z: -180.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 28.61, y: 0, z: 0}
 --- !u!114 &1759977404
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -787,12 +787,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: {fileID: 11400000, guid: 371bbf419c711224ea100870e65110a1, type: 2}
+  heightMultiplier: {fileID: 11400000, guid: 016781c657e40894bbd9e49db52ffaef, type: 2}
   gizmoSize:
     _usage: 0
     _value: 1.8
     _constant: {fileID: 0}
     _variable: {fileID: 0}
     _variableInstancer: {fileID: 0}
+  redAsGrey: 0
   depthMap: {fileID: 2800000, guid: f11e0bc2fd0c8c844a0ec6fc1964c80a, type: 3}
   shader: {fileID: 7200000, guid: a850fa2345f52fe49938ae61ecbbbe05, type: 3}
   pointSphere: {fileID: 2084258780}

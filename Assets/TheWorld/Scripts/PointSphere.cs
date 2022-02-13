@@ -18,8 +18,6 @@ public class PointSphere : MonoBehaviour
         FibonacciSphere(samples.Value);
 
         samples.ObserveChange().Subscribe(samples => FibonacciSphere(samples)).AddTo(this);
-
-        //StartCoroutine(slowUpdate());
     }
 
     private void FibonacciSphere(int samples = 1000)
@@ -40,17 +38,6 @@ public class PointSphere : MonoBehaviour
             p.Add(new Vector3(x, y, z));
         }
         points.SetValueAndForceNotify(p);
-    }
-
-    private IEnumerator slowUpdate()
-    {
-        while(true)
-        {
-            yield return new WaitForSeconds(0.1f);
-
-            points.SetValueAndForceNotify(points.Value);
-        }
-        //yield return null;
     }
 
     //private void OnDrawGizmos()

@@ -9,7 +9,11 @@ public class PlaneToSphere : MonoBehaviour
     [SerializeField]
     private FloatVariable radius;
     [SerializeField]
+    private FloatVariable heightMultiplier;
+    [SerializeField]
     private FloatReference gizmoSize;
+    [SerializeField]
+    private bool redAsGrey = true;
 
     [Header("Compute")]
     [SerializeField]
@@ -44,10 +48,16 @@ public class PlaneToSphere : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        foreach (var point in depthPoints)
+        for (int i = 0; i < depthPoints.Length; i++)
         {
-            Gizmos.color = new Color(point.w, point.w, point.w, 1);
-            Gizmos.DrawCube(new Vector3(point.x, point.y, point.z) * radius.Value, Vector3.one * gizmoSize.Value);
+            Vector4 point = depthPoints[i];
+            Vector3 pos = pointSphere.points.Value[i];
+            if(redAsGrey)
+                Gizmos.color = new Color(point.x, point.x, point.x, point.w);
+            else
+                Gizmos.color = new Color(point.x, point.y, point.z, point.w);
+            Vector3 scaledPos = new Vector3(pos.x, pos.y, pos.z) * radius.Value + Vector3.one * heightMultiplier.Value * point.x;
+            Gizmos.DrawCube(scaledPos, Vector3.one * gizmoSize.Value);
         }
     }
 }
