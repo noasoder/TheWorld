@@ -4,8 +4,10 @@ using UnityEngine;
 using UnityAtoms.BaseAtoms;
 using UniRx;
 
-public class PlaneToSphere : MonoBehaviour
+public class TextureToSphere : MonoBehaviour
 {
+    [SerializeField]
+    private bool render = true;
     [SerializeField]
     private FloatVariable radius;
     [SerializeField]
@@ -33,7 +35,7 @@ public class PlaneToSphere : MonoBehaviour
             var writeBuffer = new ComputeBuffer(points.Count, sizeof(float) * 4);
             readBuffer.SetData(points);
 
-            var id = shader.FindKernel("PlaneToSphere");
+            var id = shader.FindKernel("TextureToSphere");
 
             shader.SetBuffer(id, "readPoints", readBuffer);
             shader.SetBuffer(id, "writePoints", writeBuffer);
@@ -48,16 +50,20 @@ public class PlaneToSphere : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        if (!render)
+            return;
+
         for (int i = 0; i < depthPoints.Length; i++)
         {
-            Vector4 point = depthPoints[i];
+            Vector4 color = depthPoints[i];
             Vector3 pos = pointSphere.points.Value[i];
             if(redAsGrey)
-                Gizmos.color = new Color(point.x, point.x, point.x, point.w);
+                Gizmos.color = new Color(color.x, color.x, color.x, color.w);
             else
-                Gizmos.color = new Color(point.x, point.y, point.z, point.w);
-            Vector3 scaledPos = new Vector3(pos.x, pos.y, pos.z) * radius.Value + Vector3.one * heightMultiplier.Value * point.x;
-            Gizmos.DrawCube(scaledPos, Vector3.one * gizmoSize.Value);
+                Gizmos.color = new Color(color.x, color.y, color.z, color.w);
+            Vector3 scaledPos = new Vector3(pos.x, pos.y, pos.z) * radius.Value;
+            Vector3 heightPos = scaledPos + (scaledPos - transform.position).normalized * heightMultiplier.Value * color.x;
+            Gizmos.DrawCube(heightPos, Vector3.one * gizmoSize.Value);
         }
     }
 }
