@@ -15,7 +15,9 @@ float2 SphereToUV(float3 input)
 
 float3 UVToSphere(float2 uv)
 {
-    const float PI = 3.141594;
+    uv = float2(clamp(uv.x, 0, 1), clamp(uv.y, 0, 1));
+
+    const float PI = 3.14159265359;
     float long = (uv.x / 0.5 - 1) * PI;
     float lat = (uv.y - 0.5) * PI;
 

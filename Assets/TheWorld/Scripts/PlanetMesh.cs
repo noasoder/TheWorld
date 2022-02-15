@@ -26,6 +26,7 @@ public class PlanetMesh : MonoBehaviour
             Triangulate(points, out List<Vector3> verts, out List<int> indices);
 
             var psPoints = new ComputeBuffer(verts.Count, sizeof(float) * 3);
+
             psPoints.SetData(verts);
 
             var id = shader.FindKernel("PlaneToSphere");
@@ -69,22 +70,31 @@ public class PlanetMesh : MonoBehaviour
             p.Add(new Vertex(points[i].x, points[i].y));
         }
 
-        var verts = new List<Vertex>();
+        float subDivisions = Mathf.Sqrt(points.Length);
 
-        verts.Add(new Vertex(0, 0));
-        verts.Add(new Vertex(0, 1));
-        verts.Add(new Vertex(2, 1));
-        verts.Add(new Vertex(2, 0));
+        for (int i = 0; i < subDivisions; i++)
+        {
+            var height = (float)Mathf.Lerp(0, 1, i / subDivisions);
+            p.Add(new Vertex(0, height));
+            p.Add(new Vertex(2, height));
+        }
 
-        p.Add(new Contour(verts), false);
+        var contour = new List<Vertex>();
+
+        contour.Add(new Vertex(0, 0));
+        contour.Add(new Vertex(0, 1));
+        contour.Add(new Vertex(2, 1));
+        contour.Add(new Vertex(2, 0));
+
+        p.Add(new Contour(contour), false);
 
         var options = new ConstraintOptions();
-        options.ConformingDelaunay = true;
-        options.Convex = false;
+        options.ConformingDelaunay = false;
+        options.Convex = true;
 
         var quality = new QualityOptions();
         quality.MinimumAngle = 0;
-        quality.MaximumAngle = 100;
+        quality.MaximumAngle = 120;
 
         var mesh = p.Triangulate(options, quality);
 
@@ -96,7 +106,7 @@ public class PlanetMesh : MonoBehaviour
                     bool found = false;
                     for (int k = 0; k < vertices.Count; k++)
                     {
-                        if (vertices[k].x == t.GetVertex(j).X && vertices[k].z == t.GetVertex(j).Y)
+                        if (vertices[k].x == t.GetVertex(j).X && vertices[k].y == t.GetVertex(j).Y)
                         {
                             indices.Add(k);
                             found = true;
