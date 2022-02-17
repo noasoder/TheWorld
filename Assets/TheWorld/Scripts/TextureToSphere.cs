@@ -4,59 +4,79 @@ using UnityEngine;
 using UnityAtoms.BaseAtoms;
 using UniRx;
 
-public class TextureToSphere : MonoBehaviour
+public class TextureToSphere : PointSphere
 {
+    [Header("TextureToSphere")]
     [SerializeField]
-    private bool render = true;
-    [SerializeField]
-    private FloatVariable radius;
-    [SerializeField]
-    private FloatVariable heightMultiplier;
-    [SerializeField]
-    private FloatReference gizmoSize;
+    private bool renderDots = true;
     [SerializeField]
     private bool redAsGrey = true;
+    public FloatVariable radius;
+    public FloatVariable heightMultiplier;
+    [SerializeField]
+    private FloatReference gizmoSize;
 
     [Header("Compute")]
     [SerializeField]
     private Texture2D depthMap;
-    [SerializeField]
-    private ComputeShader shader;
-    [SerializeField]
-    private PointSphere pointSphere;
+    public ComputeShader shader;
 
-    public Vector4[] depthPoints;
+    public ReactiveProperty<Vector4[]> colors;
+    public ReactiveProperty<Vector3[]> flatPoints;
 
-    private void Start()
+    public virtual void Awake()
     {
-        var points = pointSphere.points.Subscribe(points =>
+        base.Awake();
+        var points = this.points.Subscribe(points =>
         {
-            var readBuffer = new ComputeBuffer(points.Count, sizeof(float) * 3);
-            var writeBuffer = new ComputeBuffer(points.Count, sizeof(float) * 4);
-            readBuffer.SetData(points);
-
-            var id = shader.FindKernel("TextureToSphere");
-
-            shader.SetBuffer(id, "readPoints", readBuffer);
-            shader.SetBuffer(id, "writePoints", writeBuffer);
-            shader.SetTexture(id, "DepthMap", depthMap);
-
-            shader.Dispatch(id, points.Count / 16, 1, 1);
-
-            depthPoints = new Vector4[points.Count];
-            writeBuffer.GetData(depthPoints);
+            flatPoints.SetValueAndForceNotify(SphereToFlat(points));
         });
+    }
+
+    public Vector4[] ColorToSphere(List<Vector3> points)
+    {
+        var readBuffer = new ComputeBuffer(points.Count, sizeof(float) * 3);
+        var colorBuffer = new ComputeBuffer(points.Count, sizeof(float) * 4);
+        readBuffer.SetData(points);
+
+        var id = shader.FindKernel("TextureToSphere");
+
+        shader.SetBuffer(id, "readPoints", readBuffer);
+        shader.SetBuffer(id, "colors", colorBuffer);
+        shader.SetTexture(id, "ColorMap", depthMap);
+
+        shader.Dispatch(id, points.Count / 16, 1, 1);
+
+        var color = new Vector4[points.Count];
+        colorBuffer.GetData(color);
+        return color;
+    }
+
+    public Vector3[] SphereToFlat(List<Vector3> points)
+    {
+        var flatPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
+        flatPoints.SetData(points);
+
+        var id = shader.FindKernel("SphereToPlane");
+
+        shader.SetBuffer(id, "flatPoints", flatPoints);
+
+        shader.Dispatch(id, points.Count / 16, 1, 1);
+
+        var flat = new Vector3[points.Count];
+        flatPoints.GetData(flat);
+        return flat;
     }
 
     private void OnDrawGizmos()
     {
-        if (!render)
+        if (!renderDots)
             return;
 
-        for (int i = 0; i < depthPoints.Length; i++)
+        for (int i = 0; i < colors.Value.Length; i++)
         {
-            Vector4 color = depthPoints[i];
-            Vector3 pos = pointSphere.points.Value[i];
+            Vector4 color = colors.Value[i];
+            Vector3 pos = this.points.Value[i];
             if(redAsGrey)
                 Gizmos.color = new Color(color.x, color.x, color.x, color.w);
             else

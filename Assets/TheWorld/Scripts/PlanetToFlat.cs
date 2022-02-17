@@ -25,7 +25,7 @@ public class PlanetToFlat : MonoBehaviour
     {
         flat = new ReactiveProperty<Vector3[]>();
 
-        var flatPoints = sphere.points.Select(points =>
+        sphere.points.Select(points =>
         {
             var spPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
             spPoints.SetData(points);

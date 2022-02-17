@@ -6,12 +6,13 @@ using UniRx;
 
 public class PointSphere : MonoBehaviour
 {
+    [Header("PointSphere")]
     [SerializeField]
     private IntVariable samples;
 
     public ReactiveProperty<List<Vector3>> points;
 
-    private void Awake()
+    public virtual void Awake()
     {
         points = new ReactiveProperty<List<Vector3>>();
 
@@ -39,12 +40,4 @@ public class PointSphere : MonoBehaviour
         }
         points.SetValueAndForceNotify(p);
     }
-
-    //private void OnDrawGizmos()
-    //{
-    //    foreach (var point in points)
-    //    {
-    //        Gizmos.DrawCube(point, Vector3.one);
-    //    }
-    //}
 }

@@ -6,39 +6,41 @@ using TriangleNet.Meshing;
 using UniRx;
 using UnityAtoms.BaseAtoms;
 
-public class PlanetMesh : MonoBehaviour
+public class PlanetMesh : TextureToSphere
 {
-    [SerializeField]
-    private PlanetToFlat flat;
+    [Header("PlanetMesh")]
     [SerializeField]
     private MeshFilter planet;
     [SerializeField]
     private MeshFilter flatPlanet;
-    [SerializeField]
-    private FloatVariable radius;
-    [SerializeField]
-    private ComputeShader shader;
 
-    private void Start()
+    public override void Awake()
     {
-        flat.flat.Subscribe(points =>
+        base.Awake();
+        flatPoints.Subscribe(points =>
         {
+            Debug.Log("triangle");
             Triangulate(points, out List<Vector3> verts, out List<int> indices);
+            Debug.Log("triangle done");
 
-            var psPoints = new ComputeBuffer(verts.Count, sizeof(float) * 3);
+            var psPoints = new ComputeBuffer(verts.Count + 16, sizeof(float) * 3);
 
             psPoints.SetData(verts);
 
             var id = shader.FindKernel("PlaneToSphere");
             shader.SetBuffer(id, "psPoints", psPoints);
-            shader.Dispatch(id, verts.Count / 16, 1, 1);
+            shader.Dispatch(id, verts.Count / 16 + 1, 1, 1);
 
             var p = new Vector3[verts.Count];
             psPoints.GetData(p);
 
+            this.colors.SetValueAndForceNotify(ColorToSphere(new List<Vector3>(p)));
+
+            var colors = new List<Color>();
             for (int i = 0; i < p.Length; i++)
             {
-                p[i] *= radius.Value;
+                p[i] *= radius.Value + heightMultiplier.Value * this.colors.Value[i].x;
+                colors.Add(this.colors.Value[i]);
             }
             planet.mesh.Clear();
             planet.mesh.vertices = p;

@@ -31,28 +31,28 @@ float3 UVToSphere(float2 uv)
 #pragma kernel TextureToSphere
 
 StructuredBuffer<float3> readPoints;
-RWStructuredBuffer<float4> writePoints;
-Texture2D<float4> DepthMap;
-SamplerState samplerDepthMap;
+RWStructuredBuffer<float4> colors;
+Texture2D<float4> ColorMap;
+SamplerState samplerColorMap;
 
 
 [numthreads(16,1,1)]
 void TextureToSphere(uint3 id : SV_DispatchThreadID)
 {
-    float2 uv = SphereToUV((readPoints[id.x].xyz));
-    float4 depth = DepthMap.SampleLevel(samplerDepthMap, float2(uv.x, uv.y), 0);
-    writePoints[id.x] = float4(depth);
+    float2 uv = SphereToUV((readPoints[id.x]));
+    float4 depth = ColorMap.SampleLevel(samplerColorMap, float2(uv.x, uv.y), 0);
+    colors[id.x] = float4(depth);
 }
 
 #pragma kernel SphereToPlane
 
-RWStructuredBuffer<float3> spPoints;
+RWStructuredBuffer<float3> flatPoints;
 
 [numthreads(16, 1, 1)]
 void SphereToPlane(uint3 id : SV_DispatchThreadID)
 {
-    float2 uv = SphereToUV(spPoints[id.x]);
-    spPoints[id.x] = float3(uv.x * 2.0, uv.y, 0);
+    float2 uv = SphereToUV(flatPoints[id.x]);
+    flatPoints[id.x] = float3(uv.x * 2.0, uv.y, 0);
 }
 
 #pragma kernel PlaneToSphere
