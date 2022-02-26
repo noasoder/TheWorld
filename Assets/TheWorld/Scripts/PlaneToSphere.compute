@@ -35,7 +35,6 @@ RWStructuredBuffer<float4> colors;
 Texture2D<float4> ColorMap;
 SamplerState samplerColorMap;
 
-
 [numthreads(16,1,1)]
 void TextureToSphere(uint3 id : SV_DispatchThreadID)
 {
@@ -46,13 +45,14 @@ void TextureToSphere(uint3 id : SV_DispatchThreadID)
 
 #pragma kernel SphereToPlane
 
-RWStructuredBuffer<float3> flatPoints;
+StructuredBuffer<float3> spPoints;
+RWStructuredBuffer<float2> uvs;
 
 [numthreads(16, 1, 1)]
 void SphereToPlane(uint3 id : SV_DispatchThreadID)
 {
-    float2 uv = SphereToUV(flatPoints[id.x]);
-    flatPoints[id.x] = float3(uv.x * 2.0, uv.y, 0);
+    float2 uv = SphereToUV(spPoints[id.x]);
+    uvs[id.x] = float2(uv.x * 2.0, uv.y);
 }
 
 #pragma kernel PlaneToSphere

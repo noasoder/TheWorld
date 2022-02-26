@@ -22,14 +22,14 @@ public class TextureToSphere : PointSphere
     public ComputeShader shader;
 
     public ReactiveProperty<Vector4[]> colors;
-    public ReactiveProperty<Vector3[]> flatPoints;
+    public ReactiveProperty<Vector2[]> flatPoints;
 
     public virtual void Awake()
     {
         base.Awake();
         var points = this.points.Subscribe(points =>
         {
-            flatPoints.SetValueAndForceNotify(SphereToFlat(points));
+            flatPoints.SetValueAndForceNotify(GetUVs(points.ToArray()));
         });
     }
 
@@ -52,20 +52,28 @@ public class TextureToSphere : PointSphere
         return color;
     }
 
-    public Vector3[] SphereToFlat(List<Vector3> points)
+    public Vector2[] GetUVs(Vector3[] points)
     {
-        var flatPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
-        flatPoints.SetData(points);
+        var spPoints = new ComputeBuffer(points.Length, sizeof(float) * 3);
+        var uvs = new ComputeBuffer(points.Length, sizeof(float) * 2);
+        spPoints.SetData(points);
 
         var id = shader.FindKernel("SphereToPlane");
 
-        shader.SetBuffer(id, "flatPoints", flatPoints);
+        shader.SetBuffer(id, "spPoints", spPoints);
+        shader.SetBuffer(id, "uvs", uvs);
 
-        shader.Dispatch(id, points.Count / 16, 1, 1);
+        shader.Dispatch(id, points.Length / 16, 1, 1);
 
-        var flat = new Vector3[points.Count];
-        flatPoints.GetData(flat);
-        return flat;
+        var p = new Vector2[points.Length];
+        uvs.GetData(p);
+
+        //Remove not computed
+        for (int i = 0; i < p.Length % 16; i++)
+        {
+            p[p.Length - 1 - i] = new Vector2(1, 0);
+        }
+        return p;
     }
 
     private void OnDrawGizmos()

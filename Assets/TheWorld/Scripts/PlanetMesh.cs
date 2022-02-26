@@ -14,6 +14,9 @@ public class PlanetMesh : TextureToSphere
     [SerializeField]
     private MeshFilter flatPlanet;
 
+    //[SerializeField]
+    //private Material planetMaterial;
+
     public override void Awake()
     {
         base.Awake();
@@ -23,6 +26,8 @@ public class PlanetMesh : TextureToSphere
             Triangulate(points, out List<Vector3> verts, out List<int> indices);
             Debug.Log("triangle done");
 
+
+            //Compute
             var psPoints = new ComputeBuffer(verts.Count + 16, sizeof(float) * 3);
 
             psPoints.SetData(verts);
@@ -34,6 +39,8 @@ public class PlanetMesh : TextureToSphere
             var p = new Vector3[verts.Count];
             psPoints.GetData(p);
 
+
+            var uvs = GetUVs(p);
             this.colors.SetValueAndForceNotify(ColorToSphere(new List<Vector3>(p)));
 
             var colors = new List<Color>();
@@ -42,11 +49,18 @@ public class PlanetMesh : TextureToSphere
                 p[i] *= radius.Value + heightMultiplier.Value * this.colors.Value[i].x;
                 colors.Add(this.colors.Value[i]);
             }
-            planet.mesh.Clear();
-            planet.mesh.vertices = p;
-            planet.mesh.triangles = indices.ToArray();
-            planet.mesh.Optimize();
-            planet.mesh.RecalculateNormals();
+            planet.sharedMesh.Clear();
+            planet.sharedMesh.vertices = p;
+            planet.sharedMesh.triangles = indices.ToArray();
+            planet.sharedMesh.SetUVs(0, uvs);
+            planet.sharedMesh.Optimize();
+            planet.sharedMesh.RecalculateNormals();
+            
+
+            //if(planet.gameObject.TryGetComponent(out MeshRenderer renderer))
+            //{
+            //    renderer.material = this.planetMaterial;
+            //}
 
 
             for (int i = 0; i < verts.Count; i++)
@@ -61,7 +75,7 @@ public class PlanetMesh : TextureToSphere
         });
     }
 
-    public void Triangulate(Vector3[] points, out List<Vector3> vertices, out List<int> indices)
+    public void Triangulate(Vector2[] points, out List<Vector3> vertices, out List<int> indices)
     {
         vertices = new List<Vector3>();
         indices = new List<int>();
