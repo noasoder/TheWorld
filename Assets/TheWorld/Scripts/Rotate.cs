@@ -12,6 +12,6 @@ public class Rotate : MonoBehaviour
 
     void Update()
     {
-        transform.rotation *= Quaternion.Euler(rotateAxis.normalized * rotateSpeed);        
+        transform.rotation *= Quaternion.Euler(rotateAxis.normalized * rotateSpeed);
     }
 }
