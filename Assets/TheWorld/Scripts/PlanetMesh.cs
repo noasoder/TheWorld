@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 using TriangleNet.Geometry;
 using TriangleNet.Meshing;
 using UniRx;
@@ -17,8 +18,21 @@ public class PlanetMesh : TextureToSphere
     //[SerializeField]
     //private Material planetMaterial;
 
+    [SerializeField]
+    private string planetName;
+
+    private string savePath = "Assets/TheWorld/GeneratedPlanets/";
+
     public override void Awake()
     {
+        var filepath = this.savePath + this.planetName + ".asset";
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(filepath);
+        if (mesh)
+        {
+            planet.mesh = mesh;
+            return;
+        }
+
         base.Awake();
         flatPoints.Subscribe(points =>
         {
@@ -49,19 +63,15 @@ public class PlanetMesh : TextureToSphere
                 p[i] *= radius.Value + heightMultiplier.Value * this.colors.Value[i].x;
                 colors.Add(this.colors.Value[i]);
             }
-            planet.sharedMesh.Clear();
-            planet.sharedMesh.vertices = p;
-            planet.sharedMesh.triangles = indices.ToArray();
-            planet.sharedMesh.SetUVs(0, uvs);
-            planet.sharedMesh.Optimize();
-            planet.sharedMesh.RecalculateNormals();
-            
+            planet.mesh.Clear();
+            planet.mesh.vertices = p;
+            planet.mesh.triangles = indices.ToArray();
+            planet.mesh.SetUVs(0, uvs);
+            planet.mesh.Optimize();
+            planet.mesh.RecalculateNormals();
 
-            //if(planet.gameObject.TryGetComponent(out MeshRenderer renderer))
-            //{
-            //    renderer.material = this.planetMaterial;
-            //}
-
+            AssetDatabase.DeleteAsset(filepath);
+            AssetDatabase.CreateAsset(planet.mesh, filepath);
 
             for (int i = 0; i < verts.Count; i++)
             {

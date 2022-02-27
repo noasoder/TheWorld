@@ -583,7 +583,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 368218692}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 4300000, guid: 0d537fc2abfcf1140971faae352cef59, type: 2}
 --- !u!4 &368218695
 Transform:
   m_ObjectHideFlags: 0
@@ -591,13 +591,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 368218692}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.24902771, z: -0, w: -0.9684964}
   m_LocalPosition: {x: 466, y: -50, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -388.84, z: 0}
 --- !u!114 &368218696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -623,7 +623,7 @@ MonoBehaviour:
     _constant: {fileID: 0}
     _variable: {fileID: 0}
     _variableInstancer: {fileID: 0}
-  depthMap: {fileID: 2800000, guid: f11e0bc2fd0c8c844a0ec6fc1964c80a, type: 3}
+  depthMap: {fileID: 2800000, guid: e942d0f88493758408eb012464a55c91, type: 3}
   shader: {fileID: 7200000, guid: a850fa2345f52fe49938ae61ecbbbe05, type: 3}
   colors:
     value: []
@@ -631,6 +631,7 @@ MonoBehaviour:
     value: []
   planet: {fileID: 368218694}
   flatPlanet: {fileID: 103144146}
+  planetName: Earth
 --- !u!1 &421391510
 GameObject:
   m_ObjectHideFlags: 0
