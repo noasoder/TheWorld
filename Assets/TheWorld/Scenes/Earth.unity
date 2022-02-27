@@ -510,7 +510,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 118543938}
   m_LocalRotation: {x: 0, y: 0.7071068, z: -0.7071068, w: 0}
-  m_LocalPosition: {x: 250, y: 0, z: 0.5}
+  m_LocalPosition: {x: 106.2, y: 0, z: 0.5}
   m_LocalScale: {x: 20, y: 1, z: 10}
   m_Children: []
   m_Father: {fileID: 0}
@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 368218694}
   - component: {fileID: 368218693}
   - component: {fileID: 368218696}
+  - component: {fileID: 368218697}
   m_Layer: 0
   m_Name: EarthMesh
   m_TagString: Untagged
@@ -591,13 +592,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 368218692}
-  m_LocalRotation: {x: 0, y: 0.24902771, z: -0, w: -0.9684964}
+  m_LocalRotation: {x: 0, y: 0.3727445, z: -0, w: -0.927934}
   m_LocalPosition: {x: 466, y: -50, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: -388.84, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -403.77, z: 0}
 --- !u!114 &368218696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -632,6 +633,20 @@ MonoBehaviour:
   planet: {fileID: 368218694}
   flatPlanet: {fileID: 103144146}
   planetName: Earth
+--- !u!114 &368218697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368218692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ae2da3a220bfee45a81e7be67b70ea3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotateSpeed: 0.3
+  rotateAxis: {x: 0, y: 1, z: 0}
 --- !u!1 &421391510
 GameObject:
   m_ObjectHideFlags: 0
