@@ -11,11 +11,11 @@ public class PlanetToFlat : MonoBehaviour
     [SerializeField]
     private Vector3 origin;
     [SerializeField]
-    private FloatVariable radius;
+    private FloatReference radius;
     [SerializeField]
     private TextureToSphere planetDepth;
     [SerializeField]
-    private PointSphere sphere;
+    private FibonacciSphere sphere;
     [SerializeField]
     private ComputeShader shader;
 
@@ -25,11 +25,11 @@ public class PlanetToFlat : MonoBehaviour
     {
         flat = new ReactiveProperty<Vector2[]>();
 
-        sphere.points.Select(points =>
+        sphere.Points.Select(points =>
         {
             var spPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
             var uvs = new ComputeBuffer(points.Count, sizeof(float) * 2);
-            spPoints.SetData(points);
+            spPoints.SetData(points.ToArray());
 
             var id = shader.FindKernel("SphereToPlane");
 

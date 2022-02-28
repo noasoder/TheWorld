@@ -4,15 +4,20 @@ using UnityEngine;
 using UnityAtoms.BaseAtoms;
 using UniRx;
 
-public class TextureToSphere : PointSphere
+public class TextureToSphere : MonoBehaviour
 {
+    [SerializeField]
+    private PointSphere pointSphere;
+
     [Header("TextureToSphere")]
     [SerializeField]
     private bool renderDots = true;
     [SerializeField]
     private bool redAsGrey = true;
-    public FloatVariable radius;
-    public FloatVariable heightMultiplier;
+    [SerializeField]
+    public FloatReference radius;
+    [SerializeField]
+    public FloatReference heightMultiplier;
     [SerializeField]
     private FloatReference gizmoSize;
 
@@ -21,16 +26,15 @@ public class TextureToSphere : PointSphere
     private Texture2D depthMap;
     public ComputeShader shader;
 
-    public ReactiveProperty<Vector4[]> colors;
-    public ReactiveProperty<Vector2[]> flatPoints;
+    public ReactiveProperty<List<List<Vector4>>> colors;
+    public ReactiveProperty<List<List<Vector2>>> flatPoints;
 
-    public virtual void Awake()
+    public virtual void Start()
     {
-        base.Awake();
-        var points = this.points.Subscribe(points =>
+        this.pointSphere.Points.Subscribe(points =>
         {
-            flatPoints.SetValueAndForceNotify(GetUVs(points.ToArray()));
-        });
+            flatPoints.SetValueAndForceNotify(GetUVs(points));
+        }).AddTo(this);
     }
 
     public Vector4[] ColorToSphere(List<Vector3> points)
@@ -45,35 +49,45 @@ public class TextureToSphere : PointSphere
         shader.SetBuffer(id, "colors", colorBuffer);
         shader.SetTexture(id, "ColorMap", depthMap);
 
-        shader.Dispatch(id, points.Count / 16, 1, 1);
+        shader.Dispatch(id, points.Count, 1, 1);
 
         var color = new Vector4[points.Count];
         colorBuffer.GetData(color);
         return color;
     }
 
-    public Vector2[] GetUVs(Vector3[] points)
+    public List<List<Vector2>> GetUVs(List<List<Vector3>> pointGroups, float xOffset = 0, float yOffset = 0)
     {
-        var spPoints = new ComputeBuffer(points.Length, sizeof(float) * 3);
-        var uvs = new ComputeBuffer(points.Length, sizeof(float) * 2);
-        spPoints.SetData(points);
-
-        var id = shader.FindKernel("SphereToPlane");
-
-        shader.SetBuffer(id, "spPoints", spPoints);
-        shader.SetBuffer(id, "uvs", uvs);
-
-        shader.Dispatch(id, points.Length / 16, 1, 1);
-
-        var p = new Vector2[points.Length];
-        uvs.GetData(p);
-
-        //Remove not computed
-        for (int i = 0; i < p.Length % 16; i++)
+        var result = new List<List<Vector2>>();
+        foreach (var points in pointGroups)
         {
-            p[p.Length - 1 - i] = new Vector2(1, 0);
+            var spPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
+            var uvs = new ComputeBuffer(points.Count, sizeof(float) * 2);
+            spPoints.SetData(points);
+
+            var id = shader.FindKernel("SphereToPlane");
+
+            shader.SetBuffer(id, "spPoints", spPoints);
+            shader.SetBuffer(id, "uvs", uvs);
+            shader.SetFloat("xOffset", xOffset);
+            shader.SetFloat("yOffset", yOffset);
+
+            shader.Dispatch(id, points.Count, 1, 1);
+
+            var p = new Vector2[points.Count];
+            uvs.GetData(p);
+
+            spPoints.Release();
+            uvs.Release();
+
+            //Remove not computed
+            //for (int i = 0; i < p.Length % 16; i++)
+            //{
+            //    p[p.Length - 1 - i] = new Vector2(-1, -1);
+            //}
+            result.Add(new List<Vector2>(p));
         }
-        return p;
+        return result;
     }
 
     private void OnDrawGizmos()
@@ -81,17 +95,20 @@ public class TextureToSphere : PointSphere
         if (!renderDots)
             return;
 
-        for (int i = 0; i < colors.Value.Length; i++)
+        for (int i = 0; i < colors.Value.Count; i++)
         {
-            Vector4 color = colors.Value[i];
-            Vector3 pos = this.points.Value[i];
-            if(redAsGrey)
-                Gizmos.color = new Color(color.x, color.x, color.x, color.w);
-            else
-                Gizmos.color = new Color(color.x, color.y, color.z, color.w);
-            Vector3 scaledPos = new Vector3(pos.x, pos.y, pos.z) * radius.Value;
-            Vector3 heightPos = scaledPos + (scaledPos - transform.position).normalized * heightMultiplier.Value * color.x;
-            Gizmos.DrawCube(heightPos, Vector3.one * gizmoSize.Value);
+            for (int j = 0; j < colors.Value[i].Count; j++)
+            {
+                Vector4 color = colors.Value[i][j];
+                Vector3 pos = this.pointSphere.Points.Value[i][j];
+                if(redAsGrey)
+                    Gizmos.color = new Color(color.x, color.x, color.x, color.w);
+                else
+                    Gizmos.color = new Color(color.x, color.y, color.z, color.w);
+                Vector3 scaledPos = new Vector3(pos.x, pos.y, pos.z) * radius.Value;
+                Vector3 heightPos = scaledPos + (scaledPos).normalized * heightMultiplier.Value * color.x;
+                Gizmos.DrawCube(heightPos, Vector3.one * gizmoSize.Value);
+            }
         }
     }
 }
