@@ -13,21 +13,6 @@ float2 SphereToUV(float3 input, float yOffset)
     return float2(clamp(u, 0, 1), v);
 }
 
-float3 UVToSphere(float2 uv)
-{
-    uv = float2(clamp(uv.x, 0, 1), clamp(uv.y, 0, 1));
-
-    const float PI = 3.141593;
-    float long = (uv.x / 0.5 - 1) * PI;
-    float lat = (uv.y - 0.5) * PI;
-
-    float y = sin(lat);
-    float r = cos(lat);
-    float x = sin(long) * r;
-    float z = -cos(long) * r;
-    return float3(x, y, z);
-}
-
 #pragma kernel TextureToSphere
 
 StructuredBuffer<float3> readPoints;

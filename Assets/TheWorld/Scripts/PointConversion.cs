@@ -39,19 +39,31 @@ public class PointConversion
             var uv = SphereToUV(s);
             plane.Add(new Vector2((uv.x + xOffset) * 2.0f, uv.y));
         }
+        return plane;
+    }
 
-        Vector3 SphereToUV(Vector3 point)
+    public static List<Vector4> TextureToSphere(List<Vector3> points, Texture2D colorMap)
+    {
+        var plane = new List<Vector4>();
+
+        foreach (var p in points)
         {
-            point.Normalize();
-
-            float lat = Mathf.Asin(point.y);
-            float lon = Mathf.Atan2(point.x, -point.z);
-
-            float u = (lon / Mathf.PI + 1) * 0.5f;
-            float v = lat / Mathf.PI + 0.5f;
-
-            return new Vector2(Mathf.Clamp01(u), v);
+            var uv = SphereToUV(p);
+            plane.Add(colorMap.GetPixelBilinear(uv.x, uv.y));
         }
         return plane;
+    }
+
+    private static Vector3 SphereToUV(Vector3 point)
+    {
+        point.Normalize();
+
+        float lat = Mathf.Asin(point.y);
+        float lon = Mathf.Atan2(point.x, -point.z);
+
+        float u = (lon / Mathf.PI + 1) * 0.5f;
+        float v = lat / Mathf.PI + 0.5f;
+
+        return new Vector2(Mathf.Clamp01(u), v);
     }
 }

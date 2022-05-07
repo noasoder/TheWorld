@@ -87,7 +87,7 @@ public class PlanetMesh : TextureToSphere
                 uvs = GetUVs(data, 0, i == 4 ? 0.5f : 0);
             }
 
-            var colors = (ColorToSphere(new List<Vector3>(p)));
+            var colors = ColorToSphere(new List<Vector3>(p));
 
             for (int j = 0; j < p.Length; j++)
             {
