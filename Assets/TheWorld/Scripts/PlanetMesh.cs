@@ -6,6 +6,8 @@ using TriangleNet.Geometry;
 using TriangleNet.Meshing;
 using UnityAtoms.BaseAtoms;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Threading;
 
 public class PlanetMesh : TextureToSphere
 {
@@ -24,42 +26,52 @@ public class PlanetMesh : TextureToSphere
     [SerializeField]
     private List<MeshFilter> models;
 
-    private string savePath = "Assets/TheWorld/GeneratedPlanets/";
+    private string savePath;
+    private List<List<Vector2>> points;
 
-    public void Generate()
+    public async void Generate()
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        GenerateMesh();
+
+        savePath = "Assets/TheWorld/GeneratedPlanets/" + planetName;
+        points = GetUVs(pointSphere.GeneratePoints());
+        models = new List<MeshFilter>(transform.GetComponentsInChildren<MeshFilter>());
+
+        List<Task> t = new List<Task>();
+        for (int i = 0; i < 6; i++)
+        {
+            t.Add(GenerateMesh(i));
+        }
+        await Task.WhenAll(t);
+
         stopwatch.Stop();
         var elapsedTime = stopwatch.Elapsed;
         UnityEngine.Debug.Log($"Generated planet in {elapsedTime} seconds");
     }
 
-    public void GenerateMesh()
+    public async Task GenerateMesh(int i)
     {
-        var savePath = this.savePath + this.planetName;
-        var filepath = savePath + ".asset";
+        List<int> indices = new List<int>();
+        List<Vector2> verts = new List<Vector2>();
+        List<Vector3> p = new List<Vector3>();
+        List<List<Vector2>> uvs = new List<List<Vector2>>();
 
-        var points = GetUVs(pointSphere.GeneratePoints());
-
-        models = new List<MeshFilter>(transform.GetComponentsInChildren<MeshFilter>());
-        for (int i = 0; i < 6; i++)
+        if(models.Count <= i)
         {
-            if(models.Count <= i)
-            {
-                var newModel = new GameObject("Model " + i);
-                newModel.transform.SetParent(transform, false);
-                models.Add(newModel.AddComponent<MeshFilter>());
-                var meshRenderer = newModel.AddComponent<MeshRenderer>();
-                meshRenderer.material = planetMaterial;
-            }
+            var newModel = new GameObject("Model " + i);
+            newModel.transform.SetParent(transform, false);
+            models.Add(newModel.AddComponent<MeshFilter>());
+            var meshRenderer = newModel.AddComponent<MeshRenderer>();
+            meshRenderer.material = planetMaterial;
+        }
 
-            Triangulate(points[0].ToArray(), out List<Vector2> verts, out List<int> indices);
+        await Task.Run(() =>
+        {
+            Triangulate(points[0].ToArray(), out verts, out indices);
 
-            var p = PointConversion.PlaneToSphere(verts).ToArray();
+            p = PointConversion.PlaneToSphere(verts);
 
-            List<List<Vector2>> uvs = new List<List<Vector2>>();
             if (i <= 3)
             {
                 var data = new List<List<Vector3>>();
@@ -68,7 +80,7 @@ public class PlanetMesh : TextureToSphere
 
                 //Rotate
                 var rotation = new Vector3(0, i <= 3 ? i * 90 : 0, 0);
-                for (int j = 0; j < p.Length; j++)
+                for (int j = 0; j < p.Count; j++)
                 {
                     p[j] = (Quaternion.Euler(rotation) * p[j]);
                 }
@@ -77,7 +89,7 @@ public class PlanetMesh : TextureToSphere
             {
                 //Rotate
                 var rotation = new Vector3(i == 4 ? 90 : i == 5 ? -90 : 0, 0, 0);
-                for (int j = 0; j < p.Length; j++)
+                for (int j = 0; j < p.Count; j++)
                 {
                     p[j] = (Quaternion.Euler(rotation) * p[j]);
                 }
@@ -87,44 +99,46 @@ public class PlanetMesh : TextureToSphere
                 uvs = GetUVs(data, 0, i == 4 ? 0.5f : 0);
             }
 
-            var colors = ColorToSphere(new List<Vector3>(p));
+        });
 
-            for (int j = 0; j < p.Length; j++)
-            {
-                p[j] *= radius.Value + heightMultiplier.Value * colors[j].x;
-            }
-            models[i].sharedMesh = new Mesh();
-            models[i].sharedMesh.Clear();
-            models[i].sharedMesh.vertices = p;
-            models[i].sharedMesh.triangles = indices.ToArray();
-            models[i].sharedMesh.SetUVs(0, uvs[0]);
-            models[i].sharedMesh.Optimize();
-            models[i].sharedMesh.RecalculateBounds();
-            models[i].sharedMesh.RecalculateTangents();
-            models[i].sharedMesh.RecalculateNormals();
+        var colors = ColorToSphere(new List<Vector3>(p));
+        models[i].sharedMesh = new Mesh();
 
-            var modelPath = savePath + i + ".asset";
-            AssetDatabase.DeleteAsset(modelPath);
-            AssetDatabase.CreateAsset(models[i].sharedMesh, modelPath);
-
-            if (!flatPlanet)
-            {
-                continue;
-            }
-
-            //Flat mesh
-            var vec2 = new List<Vector3>();
-            for (int j = 0; j < verts.Count; j++)
-            {
-                verts[j] *= radius.Value;
-                vec2.Add(verts[j]);
-            }
-            flatPlanet.sharedMesh.Clear();
-            flatPlanet.sharedMesh.vertices = vec2.ToArray();
-            flatPlanet.sharedMesh.triangles = indices.ToArray();
-            flatPlanet.sharedMesh.Optimize();
-            flatPlanet.sharedMesh.RecalculateNormals();
+        for (int j = 0; j < p.Count; j++)
+        {
+            p[j] *= radius.Value + heightMultiplier.Value * colors[j].x;
         }
+        models[i].sharedMesh.Clear();
+        models[i].sharedMesh.vertices = p.ToArray();
+        models[i].sharedMesh.triangles = indices.ToArray();
+        models[i].sharedMesh.SetUVs(0, uvs[0]);
+        models[i].sharedMesh.Optimize();
+        models[i].sharedMesh.RecalculateBounds();
+        models[i].sharedMesh.RecalculateTangents();
+        models[i].sharedMesh.RecalculateNormals();
+
+        var modelPath = savePath + i + ".asset";
+        AssetDatabase.DeleteAsset(modelPath);
+        AssetDatabase.CreateAsset(models[i].sharedMesh, modelPath);
+
+        //UnityEngine.Debug.Log($"Done {i}");
+        if (!flatPlanet)
+        {
+            return;
+        }
+
+        //Flat mesh
+        var vec2 = new List<Vector3>();
+        for (int j = 0; j < verts.Count; j++)
+        {
+            verts[j] *= radius.Value;
+            vec2.Add(verts[j]);
+        }
+        flatPlanet.sharedMesh.Clear();
+        flatPlanet.sharedMesh.vertices = vec2.ToArray();
+        flatPlanet.sharedMesh.triangles = indices.ToArray();
+        flatPlanet.sharedMesh.Optimize();
+        flatPlanet.sharedMesh.RecalculateNormals();
     }
 
     public void Triangulate(Vector2[] points, out List<Vector2> vertices, out List<int> indices)
