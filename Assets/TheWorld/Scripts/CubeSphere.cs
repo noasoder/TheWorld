@@ -7,7 +7,7 @@ public class CubeSphere : PointSphere
 {
     [Header("PointSphere")]
     [SerializeField]
-    private IntVariable subdivisions;
+    private IntReference subdivisions;
 
     public override List<List<Vector3>> GeneratePoints()
     {
