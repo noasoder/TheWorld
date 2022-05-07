@@ -7,13 +7,9 @@ using UniRx;
 public class TextureToSphere : MonoBehaviour
 {
     [SerializeField]
-    private PointSphere pointSphere;
+    protected PointSphere pointSphere;
 
     [Header("TextureToSphere")]
-    [SerializeField]
-    private bool renderDots = true;
-    [SerializeField]
-    private bool redAsGrey = true;
     [SerializeField]
     public FloatReference radius;
     [SerializeField]
@@ -28,14 +24,6 @@ public class TextureToSphere : MonoBehaviour
 
     public ReactiveProperty<List<List<Vector4>>> colors;
     public ReactiveProperty<List<List<Vector2>>> flatPoints;
-
-    public virtual void Start()
-    {
-        this.pointSphere.Points.Subscribe(points =>
-        {
-            flatPoints.SetValueAndForceNotify(GetUVs(points));
-        }).AddTo(this);
-    }
 
     public Vector4[] ColorToSphere(List<Vector3> points)
     {
@@ -53,6 +41,10 @@ public class TextureToSphere : MonoBehaviour
 
         var color = new Vector4[points.Count];
         colorBuffer.GetData(color);
+
+        readBuffer.Release();
+        colorBuffer.Release();
+
         return color;
     }
 
@@ -88,27 +80,5 @@ public class TextureToSphere : MonoBehaviour
             result.Add(new List<Vector2>(p));
         }
         return result;
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (!renderDots)
-            return;
-
-        for (int i = 0; i < colors.Value.Count; i++)
-        {
-            for (int j = 0; j < colors.Value[i].Count; j++)
-            {
-                Vector4 color = colors.Value[i][j];
-                Vector3 pos = this.pointSphere.Points.Value[i][j];
-                if(redAsGrey)
-                    Gizmos.color = new Color(color.x, color.x, color.x, color.w);
-                else
-                    Gizmos.color = new Color(color.x, color.y, color.z, color.w);
-                Vector3 scaledPos = new Vector3(pos.x, pos.y, pos.z) * radius.Value;
-                Vector3 heightPos = scaledPos + (scaledPos).normalized * heightMultiplier.Value * color.x;
-                Gizmos.DrawCube(heightPos, Vector3.one * gizmoSize.Value);
-            }
-        }
     }
 }

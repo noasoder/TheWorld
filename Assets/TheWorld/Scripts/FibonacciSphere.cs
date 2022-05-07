@@ -8,37 +8,17 @@ public class FibonacciSphere : PointSphere
 {
     [Header("PointSphere")]
     [SerializeField]
-    private IntVariable samples;
+    protected IntVariable samples;
 
-    [SerializeField]
-    private bool renderDots = true;
-    [SerializeField]
-    private FloatReference gizmoSize;
-    [SerializeField]
-    private FloatReference radius;
-
-    public override ReactiveProperty<List<List<Vector3>>> Points { get; set; }
-    public override int NumMeshes { get; set; }
-
-    public void Awake()
-    {
-        NumMeshes = 1;
-        Points = new ReactiveProperty<List<List<Vector3>>>();
-
-        CreateFibonacciSphere(samples.Value);
-
-        samples.ObserveChange().Subscribe(samples => CreateFibonacciSphere(samples)).AddTo(this);
-    }
-
-    private void CreateFibonacciSphere(int samples = 1000)
+    public override List<List<Vector3>> GeneratePoints()
     {
         var p = new List<List<Vector3>>();
         var phi = Mathf.PI * (3f - Mathf.Sqrt(5f));
 
         p.Add(new List<Vector3>());
-        for (int i = 0; i < samples; i++)
+        for (int i = 0; i < samples.Value; i++)
         {
-            var y = 1 - (i / (float)(samples - 1)) * 2;
+            var y = 1 - (i / (float)(samples.Value - 1)) * 2;
             var radius = Mathf.Sqrt(1 - y * y);
 
             var theta = phi * i;
@@ -48,20 +28,7 @@ public class FibonacciSphere : PointSphere
 
             p[0].Add(new Vector3(x, y, z));
         }
-        Points.SetValueAndForceNotify(p);
-    }
 
-    private void OnDrawGizmos()
-    {
-        if (!renderDots || Points == null)
-            return;
-
-        for (int i = 0; i < Points.Value.Count; i++)
-        {
-            for (int j = 0; j < Points.Value[i].Count; j++)
-            {
-                Gizmos.DrawCube(Points.Value[i][j] * radius.Value, Vector3.one * gizmoSize.Value);
-            }
-        }
+        return p;
     }
 }
