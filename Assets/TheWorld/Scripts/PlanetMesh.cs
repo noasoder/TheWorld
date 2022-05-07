@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEditor;
 using TriangleNet.Geometry;
 using TriangleNet.Meshing;
-using UniRx;
 using UnityAtoms.BaseAtoms;
+using System.Diagnostics;
 
 public class PlanetMesh : TextureToSphere
 {
@@ -25,6 +25,16 @@ public class PlanetMesh : TextureToSphere
     private List<MeshFilter> models;
 
     private string savePath = "Assets/TheWorld/GeneratedPlanets/";
+
+    public void Generate()
+    {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        GenerateMesh();
+        stopwatch.Stop();
+        var elapsedTime = stopwatch.Elapsed;
+        UnityEngine.Debug.Log($"Generated planet in {elapsedTime} seconds");
+    }
 
     public void GenerateMesh()
     {
@@ -47,22 +57,7 @@ public class PlanetMesh : TextureToSphere
 
             Triangulate(points[0].ToArray(), out List<Vector2> verts, out List<int> indices);
 
-            //Compute
-            var pPoints = new ComputeBuffer(verts.Count, sizeof(float) * 2);
-            var sPoints = new ComputeBuffer(verts.Count, sizeof(float) * 3);
-
-            pPoints.SetData(verts);
-
-            var id = shader.FindKernel("PlaneToSphere");
-            shader.SetBuffer(id, "pPoints", pPoints);
-            shader.SetBuffer(id, "sPoints", sPoints);
-
-            shader.Dispatch(id, verts.Count, 1, 1);
-
-            var p = new Vector3[verts.Count];
-            sPoints.GetData(p);
-            pPoints.Release();
-            sPoints.Release();
+            var p = PointConversion.PlaneToSphere(verts).ToArray();
 
             List<List<Vector2>> uvs = new List<List<Vector2>>();
             if (i <= 3)
@@ -111,6 +106,11 @@ public class PlanetMesh : TextureToSphere
             var modelPath = savePath + i + ".asset";
             AssetDatabase.DeleteAsset(modelPath);
             AssetDatabase.CreateAsset(models[i].sharedMesh, modelPath);
+
+            if (!flatPlanet)
+            {
+                continue;
+            }
 
             //Flat mesh
             var vec2 = new List<Vector3>();

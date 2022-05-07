@@ -42,29 +42,3 @@ void TextureToSphere(uint3 id : SV_DispatchThreadID)
     float4 depth = ColorMap.SampleLevel(samplerColorMap, float2(uv.x, uv.y), 0);
     colors[id.x] = float4(depth);
 }
-
-#pragma kernel SphereToPlane
-
-StructuredBuffer<float3> spPoints;
-RWStructuredBuffer<float2> uvs;
-float xOffset;
-float yOffset;
-
-[numthreads(1, 1, 1)]
-void SphereToPlane(uint3 id : SV_DispatchThreadID)
-{
-    float2 uv = SphereToUV(spPoints[id.x], yOffset);
-    uvs[id.x] = float2((uv.x + xOffset) * 2.0, uv.y);
-}
-
-#pragma kernel PlaneToSphere
-
-StructuredBuffer<float2> pPoints;
-RWStructuredBuffer<float3> sPoints;
-
-[numthreads(1, 1, 1)]
-void PlaneToSphere(uint3 id : SV_DispatchThreadID)
-{
-    sPoints[id.x] = UVToSphere(float2(pPoints[id.x].x * 0.5, pPoints[id.x].y));
-}
-

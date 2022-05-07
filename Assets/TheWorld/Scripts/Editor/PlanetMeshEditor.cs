@@ -14,7 +14,7 @@ public class PlanetMeshEditor : Editor
         {
             if (this.target is PlanetMesh tile)
             {
-                tile.GenerateMesh();
+                tile.Generate();
             }
         }
     }

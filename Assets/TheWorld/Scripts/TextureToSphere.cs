@@ -53,30 +53,7 @@ public class TextureToSphere : MonoBehaviour
         var result = new List<List<Vector2>>();
         foreach (var points in pointGroups)
         {
-            var spPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
-            var uvs = new ComputeBuffer(points.Count, sizeof(float) * 2);
-            spPoints.SetData(points);
-
-            var id = shader.FindKernel("SphereToPlane");
-
-            shader.SetBuffer(id, "spPoints", spPoints);
-            shader.SetBuffer(id, "uvs", uvs);
-            shader.SetFloat("xOffset", xOffset);
-            shader.SetFloat("yOffset", yOffset);
-
-            shader.Dispatch(id, points.Count, 1, 1);
-
-            var p = new Vector2[points.Count];
-            uvs.GetData(p);
-
-            spPoints.Release();
-            uvs.Release();
-
-            //Remove not computed
-            //for (int i = 0; i < p.Length % 16; i++)
-            //{
-            //    p[p.Length - 1 - i] = new Vector2(-1, -1);
-            //}
+            var p = PointConversion.SphereToPlane(points, xOffset, yOffset);
             result.Add(new List<Vector2>(p));
         }
         return result;

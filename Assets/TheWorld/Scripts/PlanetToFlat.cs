@@ -17,7 +17,7 @@ public class PlanetToFlat : FibonacciSphere
     [SerializeField]
     private ComputeShader shader;
 
-    public ReactiveProperty<Vector2[]> flat;
+    public ReactiveProperty<List<Vector2>> flat;
 
     private void Awake()
     {
@@ -26,28 +26,14 @@ public class PlanetToFlat : FibonacciSphere
 
     private void Generate()
     {
-        flat = new ReactiveProperty<Vector2[]>();
+        flat = new ReactiveProperty<List<Vector2>>();
 
         var points = GeneratePoints();
-        
-        var spPoints = new ComputeBuffer(points.Count, sizeof(float) * 3);
-        var uvs = new ComputeBuffer(points.Count, sizeof(float) * 2);
-        spPoints.SetData(points.ToArray());
 
-        var id = shader.FindKernel("SphereToPlane");
-
-        shader.SetBuffer(id, "spPoints", spPoints);
-        shader.SetBuffer(id, "uvs", uvs);
-
-        shader.Dispatch(id, points.Count / 16, 1, 1);
-
-        var p = new Vector2[points.Count];
-        uvs.GetData(p);
-
-        //Remove not computed
-        for (int i = 0; i < p.Length % 16; i++)
+        var p = new List<Vector2>();
+        foreach (var point in points)
         {
-            p[p.Length - 1 - i] = new Vector2(1, 0);
+            p.AddRange(PointConversion.SphereToPlane(point).ToArray());
         }
 
         flat.SetValueAndForceNotify(p);
@@ -60,7 +46,7 @@ public class PlanetToFlat : FibonacciSphere
 
         Gizmos.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
-        for (int i = 0; i < flat.Value.Length; i++)
+        for (int i = 0; i < flat.Value.Count; i++)
         {
             Vector3 point = flat.Value[i];
             Gizmos.DrawCube(origin + point * radius.Value, Vector3.one);
