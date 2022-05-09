@@ -20,12 +20,7 @@ public class PlanetMesh : TextureToSphere
     [SerializeField]
     private Material planetMaterial;
 
-    [SerializeField]
-    private BoolReference overrideSavedMesh;
-
-    [SerializeField]
     private List<MeshFilter> models;
-    [SerializeField]
     private List<MeshRenderer> renderers;
 
     private string savePath;
