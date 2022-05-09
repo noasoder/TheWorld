@@ -14,8 +14,6 @@ public class TextureToSphere : MonoBehaviour
     public FloatReference radius;
     [SerializeField]
     public FloatReference heightMultiplier;
-    [SerializeField]
-    private FloatReference gizmoSize;
 
     [Header("Compute")]
     [SerializeField]
