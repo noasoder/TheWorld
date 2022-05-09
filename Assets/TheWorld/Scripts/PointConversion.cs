@@ -41,6 +41,18 @@ public class PointConversion
         }
         return plane;
     }
+    
+    public static List<Vector2> SphereToUV(List<Vector3> sphere, float xOffset = 0f, float yOffset = 0f)
+    {
+        var plane = new List<Vector2>();
+
+        foreach (var s in sphere)
+        {
+            var uv = SphereToUV(s);
+            plane.Add(new Vector2((uv.x + xOffset), uv.y));
+        }
+        return plane;
+    }
 
     public static List<Vector4> TextureToSphere(List<Vector3> points, Texture2D colorMap)
     {

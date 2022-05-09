@@ -47,8 +47,8 @@ public class TextureToSphere : MonoBehaviour
 
         return color;
     }
-
-    public List<List<Vector2>> GetUVs(List<List<Vector3>> pointGroups, float xOffset = 0, float yOffset = 0)
+    
+    public List<List<Vector2>> PointToFlat(List<List<Vector3>> pointGroups, float xOffset = 0, float yOffset = 0)
     {
         var result = new List<List<Vector2>>();
         foreach (var points in pointGroups)
